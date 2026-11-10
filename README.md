@@ -54,6 +54,23 @@ dotnet publish src/Tejun.App -c Release -r win-x64 -o publish  # 配布用の ex
 | `src/Tejun.App` | 画面と、Windows でのクリック検知・画面撮影（`Platform/Windows`） |
 | `tests/Tejun.Tests` | 書き出しのテストと、画面を表示せずに操作の流れを通すテスト |
 
+### Microsoft Store 用のパッケージ
+
+Store から入れたアプリは Microsoft が署名するため、ブラウザや Windows の「信頼できない」という警告が出ません。提出するパッケージ（MSIX）は GitHub Actions が毎回作り、`TejunRecorder-store-msix` という成果物に入れます。
+
+1. [storedeveloper.microsoft.com](https://storedeveloper.microsoft.com/) で個人の開発者として登録し、パートナー センターでアプリの名前を予約します
+2. パートナー センターの「製品 ID」に出る 3 つの値を、GitHub の Settings → Secrets and variables → Actions → Variables に登録します
+
+   | Variable | パートナー センターでの名前 |
+   | --- | --- |
+   | `STORE_IDENTITY_NAME` | パッケージ/ID/名前 |
+   | `STORE_PUBLISHER` | パッケージ/ID/発行元（`CN=…`） |
+   | `STORE_PUBLISHER_DISPLAY_NAME` | パッケージ/プロパティ/発行元表示名 |
+
+3. GitHub Actions を動かし直して、成果物の `.msix` をパートナー センターの申請にアップロードします。`runFullTrust` の用途を聞かれたら、「クリックの検知と画面の撮影を行うデスクトップアプリのため」と答えます
+
+手元で作るときは、Windows SDK を入れた Windows で `pwsh packaging/msix/build.ps1` を実行します。Store は 0 で始まるバージョンを受け付けないので、バージョン（`Directory.Build.props`）は 1.0.0 以上にします。
+
 Windows 以外でも起動でき、その場合は見本の手順で画面の動きを確かめるモードになります。Windows 上での記録そのものは、GitHub Actions が実際にクリックを起こして確かめています（`TejunRecorder.exe --selftest 出力先`）。
 
 ## ライセンス

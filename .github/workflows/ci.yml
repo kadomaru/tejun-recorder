@@ -63,6 +63,24 @@ jobs:
         with:
           name: TejunRecorder-win-x64
           path: publish/TejunRecorder.exe
+      # Store の値（リポジトリの Variables）が未設定のときは、仮の値でパッケージが作れることだけ確かめる
+      - name: Microsoft Store 用のパッケージを作る
+        shell: pwsh
+        run: |
+          $opt = @{}
+          if ($env:STORE_IDENTITY_NAME) { $opt.IdentityName = $env:STORE_IDENTITY_NAME }
+          if ($env:STORE_PUBLISHER) { $opt.Publisher = $env:STORE_PUBLISHER }
+          if ($env:STORE_PUBLISHER_DISPLAY_NAME) { $opt.PublisherDisplayName = $env:STORE_PUBLISHER_DISPLAY_NAME }
+          if ($opt.Count -lt 3) { Write-Host '::warning::Store の値が未設定のため、仮の値で作りました。このパッケージは Store に提出できません' }
+          ./packaging/msix/build.ps1 @opt
+        env:
+          STORE_IDENTITY_NAME: ${{ vars.STORE_IDENTITY_NAME }}
+          STORE_PUBLISHER: ${{ vars.STORE_PUBLISHER }}
+          STORE_PUBLISHER_DISPLAY_NAME: ${{ vars.STORE_PUBLISHER_DISPLAY_NAME }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TejunRecorder-store-msix
+          path: publish-store/*.msix
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
