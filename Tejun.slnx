@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Tejun.App/Tejun.App.csproj" />
+    <Project Path="src/Tejun.Core/Tejun.Core.csproj" />
+  </Folder>
+</Solution>

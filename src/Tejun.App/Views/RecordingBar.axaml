@@ -1,0 +1,29 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Tejun.App.Views.RecordingBar"
+        Title="手順レコーダー（記録中）"
+        Icon="/Assets/app.ico"
+        SizeToContent="WidthAndHeight"
+        CanResize="False"
+        Topmost="True"
+        ShowActivated="False"
+        WindowDecorations="None"
+        TransparencyLevelHint="Transparent"
+        Background="Transparent">
+  <Border x:Name="Root" Background="#F21D1D1F" CornerRadius="28" Padding="18,10,10,10" Margin="6"
+          PointerPressed="OnDragStart" ToolTip.Tip="ここをつかんで動かせます。このバーは画面の記録には写りません。">
+    <StackPanel Orientation="Horizontal" Spacing="10">
+      <Ellipse x:Name="Dot" Width="14" Height="14" Fill="{StaticResource Accent}" VerticalAlignment="Center" />
+      <TextBlock x:Name="StateText" Text="記録中" Foreground="White" FontWeight="Bold" FontSize="15" VerticalAlignment="Center" />
+      <TextBlock x:Name="CountText" Text="0 手順" Foreground="#D0D0D5" FontSize="15" VerticalAlignment="Center" MinWidth="64" Margin="0,0,6,0" />
+      <Button x:Name="PauseButton" Classes="bar" Content="一時停止" Click="OnPauseClick" ToolTip.Tip="クリックしても記録しない状態にします" />
+      <Button x:Name="ShotButton" Classes="bar" Content="今の画面を撮る" Click="OnShotClick" ToolTip.Tip="クリックなしで、今の画面を手順に加えます" />
+      <Button x:Name="StopButton" Classes="bar stop" Click="OnStopClick" ToolTip.Tip="記録を終えて、編集と保存の画面へ進みます">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Rectangle Width="12" Height="12" Fill="White" VerticalAlignment="Center" RadiusX="2" RadiusY="2" />
+          <TextBlock Text="記録を終了" Foreground="White" VerticalAlignment="Center" />
+        </StackPanel>
+      </Button>
+    </StackPanel>
+  </Border>
+</Window>

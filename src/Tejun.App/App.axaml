@@ -1,0 +1,115 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Tejun.App.App"
+             RequestedThemeVariant="Light">
+  <Application.Resources>
+    <FontFamily x:Key="UiFont">Yu Gothic UI, Meiryo UI, Meiryo, Noto Sans CJK JP, Noto Sans JP</FontFamily>
+    <Color x:Key="AccentColor">#FF3B30</Color>
+    <SolidColorBrush x:Key="Accent" Color="#FF3B30" />
+    <SolidColorBrush x:Key="AccentHover" Color="#E6352B" />
+    <SolidColorBrush x:Key="AccentPressed" Color="#C92E25" />
+    <SolidColorBrush x:Key="Ink" Color="#1D1D1F" />
+    <SolidColorBrush x:Key="SubInk" Color="#5F5F66" />
+    <SolidColorBrush x:Key="Line" Color="#D8D8DE" />
+    <SolidColorBrush x:Key="Page" Color="#F5F5F7" />
+    <SolidColorBrush x:Key="Card" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="Blue" Color="#0A63D8" />
+  </Application.Resources>
+  <Application.Styles>
+    <FluentTheme />
+
+    <Style Selector="Window">
+      <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
+      <Setter Property="FontSize" Value="14" />
+    </Style>
+    <Style Selector="TextBlock">
+      <Setter Property="Foreground" Value="{StaticResource Ink}" />
+    </Style>
+
+    <!-- 赤い主役のボタン（記録をはじめる） -->
+    <Style Selector="Button.record">
+      <Setter Property="Background" Value="{StaticResource Accent}" />
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="FontSize" Value="22" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Padding" Value="40,18" />
+      <Setter Property="CornerRadius" Value="40" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.record TextBlock">
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+    <Style Selector="Button.record:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{StaticResource AccentHover}" />
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+    <Style Selector="Button.record:pressed /template/ ContentPresenter">
+      <Setter Property="Background" Value="{StaticResource AccentPressed}" />
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+
+    <!-- 保存のボタン -->
+    <Style Selector="Button.save">
+      <Setter Property="Background" Value="{StaticResource Blue}" />
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="Padding" Value="18,9" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="MinWidth" Value="150" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.save TextBlock">
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+    <Style Selector="Button.save:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#0956BC" />
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+    <Style Selector="Button.save:pressed /template/ ContentPresenter">
+      <Setter Property="Background" Value="#07479B" />
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+    <Style Selector="Button.save:disabled /template/ ContentPresenter">
+      <Setter Property="Background" Value="#B9C6D8" />
+    </Style>
+
+    <!-- 控えめなボタン -->
+    <Style Selector="Button.plain">
+      <Setter Property="Background" Value="White" />
+      <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Padding" Value="12,7" />
+      <Setter Property="CornerRadius" Value="8" />
+    </Style>
+    <Style Selector="Button.small">
+      <Setter Property="Padding" Value="9,5" />
+      <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <!-- 記録中の操作バーのボタン -->
+    <Style Selector="Button.bar">
+      <Setter Property="Background" Value="#3A3A3F" />
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="Padding" Value="14,8" />
+      <Setter Property="CornerRadius" Value="18" />
+      <Setter Property="FontSize" Value="14" />
+    </Style>
+    <Style Selector="Button.bar:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#55555C" />
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+    <Style Selector="Button.bar:pressed /template/ ContentPresenter">
+      <Setter Property="Background" Value="#2A2A2E" />
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+    <Style Selector="Button.bar.stop">
+      <Setter Property="Background" Value="{StaticResource Accent}" />
+      <Setter Property="FontWeight" Value="Bold" />
+    </Style>
+    <Style Selector="Button.bar.stop:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{StaticResource AccentHover}" />
+    </Style>
+    <Style Selector="Button.bar.stop:pressed /template/ ContentPresenter">
+      <Setter Property="Background" Value="{StaticResource AccentPressed}" />
+    </Style>
+  </Application.Styles>
+</Application>

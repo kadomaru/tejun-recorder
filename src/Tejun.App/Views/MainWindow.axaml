@@ -1,0 +1,192 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:app="using:Tejun.App"
+        x:Class="Tejun.App.Views.MainWindow"
+        Title="手順レコーダー"
+        Icon="/Assets/app.ico"
+        Width="980" Height="720" MinWidth="700" MinHeight="520"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource Page}">
+  <Panel>
+
+    <!-- ① はじめの画面 -->
+    <ScrollViewer x:Name="HomeView" VerticalScrollBarVisibility="Auto">
+      <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="32" Spacing="0" MaxWidth="760">
+        <Image Source="/Assets/app.png" Width="84" Height="84" />
+        <TextBlock Text="手順レコーダー" FontSize="30" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,10,0,0" />
+        <TextBlock Text="クリックするたびに画面を撮って、そのまま手順書にします。"
+                   FontSize="16" Foreground="{StaticResource SubInk}" HorizontalAlignment="Center"
+                   TextWrapping="Wrap" TextAlignment="Center" Margin="0,6,0,0" />
+
+        <Button x:Name="StartButton" Classes="record" Margin="0,30,0,0" Click="OnStartClick">
+          <StackPanel Orientation="Horizontal" Spacing="12">
+            <Ellipse Width="20" Height="20" Fill="White" VerticalAlignment="Center" />
+            <TextBlock Text="記録をはじめる" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+
+        <!-- 使い方 -->
+        <Grid ColumnDefinitions="*,Auto,*,Auto,*" Margin="0,34,0,0">
+          <Border Grid.Column="0" Background="{StaticResource Card}" BorderBrush="{StaticResource Line}" BorderThickness="1" CornerRadius="12" Padding="14">
+            <StackPanel Spacing="4">
+              <TextBlock Text="1" FontSize="20" FontWeight="Bold" Foreground="{StaticResource Accent}" />
+              <TextBlock Text="記録をはじめる" FontWeight="Bold" TextWrapping="Wrap" />
+              <TextBlock Text="この窓が隠れ、画面の下に小さな操作バーが出ます。" FontSize="13" Foreground="{StaticResource SubInk}" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+          <TextBlock Grid.Column="1" Text="→" FontSize="20" Foreground="{StaticResource SubInk}" VerticalAlignment="Center" Margin="8,0" />
+          <Border Grid.Column="2" Background="{StaticResource Card}" BorderBrush="{StaticResource Line}" BorderThickness="1" CornerRadius="12" Padding="14">
+            <StackPanel Spacing="4">
+              <TextBlock Text="2" FontSize="20" FontWeight="Bold" Foreground="{StaticResource Accent}" />
+              <TextBlock Text="いつもどおり操作する" FontWeight="Bold" TextWrapping="Wrap" />
+              <TextBlock Text="クリックするたびに、その瞬間の画面とクリックした場所が記録されます。" FontSize="13" Foreground="{StaticResource SubInk}" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+          <TextBlock Grid.Column="3" Text="→" FontSize="20" Foreground="{StaticResource SubInk}" VerticalAlignment="Center" Margin="8,0" />
+          <Border Grid.Column="4" Background="{StaticResource Card}" BorderBrush="{StaticResource Line}" BorderThickness="1" CornerRadius="12" Padding="14">
+            <StackPanel Spacing="4">
+              <TextBlock Text="3" FontSize="20" FontWeight="Bold" Foreground="{StaticResource Accent}" />
+              <TextBlock Text="終了して保存する" FontWeight="Bold" TextWrapping="Wrap" />
+              <TextBlock Text="説明を手直しして、PDF・HTML・PNG のどれかで保存します。" FontSize="13" Foreground="{StaticResource SubInk}" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+        </Grid>
+
+        <!-- 撮る範囲 -->
+        <Border Background="{StaticResource Card}" BorderBrush="{StaticResource Line}" BorderThickness="1" CornerRadius="12" Padding="16,12" Margin="0,16,0,0">
+          <StackPanel Spacing="6">
+            <TextBlock Text="撮る範囲" FontWeight="Bold" />
+            <WrapPanel>
+              <RadioButton x:Name="ScopeScreen" GroupName="scope" Content="クリックした画面の全体（おすすめ）" Margin="0,0,24,0" />
+              <RadioButton x:Name="ScopeWindow" GroupName="scope" Content="クリックしたウィンドウだけ" Margin="0,0,24,0" />
+              <RadioButton x:Name="ScopeAll" GroupName="scope" Content="つないでいる画面をすべて" />
+            </WrapPanel>
+          </StackPanel>
+        </Border>
+        <TextBlock x:Name="HomeNote" FontSize="13" Foreground="{StaticResource SubInk}" TextWrapping="Wrap"
+                   HorizontalAlignment="Center" TextAlignment="Center" Margin="0,12,0,0"
+                   Text="記録するのはクリックと画面だけです。キーボードで打った文字は記録しません。" />
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- ② 記録のあとの編集画面 -->
+    <Grid x:Name="EditorView" RowDefinitions="Auto,*,Auto" IsVisible="False">
+
+      <Border Grid.Row="0" Background="{StaticResource Card}" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Padding="20,14">
+        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+          <StackPanel Spacing="4">
+            <TextBlock Text="手順書のタイトル" FontSize="12" Foreground="{StaticResource SubInk}" />
+            <TextBox x:Name="TitleBox" FontSize="18" FontWeight="Bold" PlaceholderText="例：メールの署名を設定する" />
+          </StackPanel>
+          <Button Grid.Column="1" Classes="plain" VerticalAlignment="Bottom" Click="OnContinueClick"
+                  ToolTip.Tip="今の手順の後ろに、続きを記録します">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Ellipse Width="11" Height="11" Fill="{StaticResource Accent}" VerticalAlignment="Center" />
+              <TextBlock Text="続きを記録" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+          <Button Grid.Column="2" Classes="plain" VerticalAlignment="Bottom" Content="最初からやり直す" Click="OnNewClick"
+                  ToolTip.Tip="今の記録を捨てて、はじめの画面に戻ります" />
+        </Grid>
+      </Border>
+
+      <Panel Grid.Row="1">
+        <ScrollViewer x:Name="StepsScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+          <ItemsControl x:Name="StepsList" Margin="20,8,20,16">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <VirtualizingStackPanel />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="app:StepViewModel">
+                <Border Background="{StaticResource Card}" BorderBrush="{StaticResource Line}" BorderThickness="1"
+                        CornerRadius="12" Padding="14" Margin="0,8,0,0" MaxWidth="1100">
+                  <Grid RowDefinitions="Auto,Auto" RowSpacing="10">
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                      <Border Width="34" Height="34" CornerRadius="17" Background="{StaticResource Accent}" VerticalAlignment="Top">
+                        <TextBlock Text="{Binding Number}" Foreground="White" FontWeight="Bold" FontSize="15"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                      </Border>
+                      <TextBox Grid.Column="1" Text="{Binding Description, Mode=TwoWay}" AcceptsReturn="True" TextWrapping="Wrap"
+                               FontSize="15" MinHeight="34" VerticalContentAlignment="Center"
+                               PlaceholderText="この手順の説明を書きます" />
+                      <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Top">
+                        <Button Classes="plain small" Content="↑ 上へ" Click="OnMoveUpClick" IsEnabled="{Binding CanMoveUp}"
+                                ToolTip.Tip="この手順を 1 つ前に動かします" />
+                        <Button Classes="plain small" Content="↓ 下へ" Click="OnMoveDownClick" IsEnabled="{Binding CanMoveDown}"
+                                ToolTip.Tip="この手順を 1 つ後ろに動かします" />
+                        <Button Classes="plain small" Content="削除" Foreground="#C4281E" Click="OnDeleteClick"
+                                ToolTip.Tip="この手順を取り除きます" />
+                      </StackPanel>
+                    </Grid>
+                    <Border Grid.Row="1" BorderBrush="{StaticResource Line}" BorderThickness="1" Background="#EDEDF0"
+                            MinHeight="160" HorizontalAlignment="Center" ClipToBounds="True">
+                      <Image Source="{Binding Preview}" Stretch="Uniform" StretchDirection="DownOnly" MaxHeight="560" />
+                    </Border>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+        <StackPanel x:Name="EmptyNote" IsVisible="False" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="14">
+          <TextBlock Text="手順がまだありません" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" />
+          <TextBlock Text="記録中にクリックすると、ここに手順が並びます。" Foreground="{StaticResource SubInk}" HorizontalAlignment="Center" />
+          <Button Classes="record" FontSize="17" Padding="26,12" Click="OnContinueClick">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <Ellipse Width="15" Height="15" Fill="White" VerticalAlignment="Center" />
+              <TextBlock Text="記録をはじめる" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+        </StackPanel>
+      </Panel>
+
+      <Border Grid.Row="2" Background="{StaticResource Card}" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0" Padding="20,12">
+        <StackPanel Spacing="8">
+          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+            <TextBlock x:Name="CountText" Text="全 0 手順" FontWeight="Bold" VerticalAlignment="Center" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+              <TextBlock Text="保存する：" VerticalAlignment="Center" Foreground="{StaticResource SubInk}" />
+              <Button x:Name="SavePdfButton" Classes="save" Click="OnSavePdfClick" ToolTip.Tip="印刷や配布に向いた、1 つの PDF ファイルにします">
+                <StackPanel>
+                  <TextBlock Text="PDF" FontWeight="Bold" FontSize="16" HorizontalAlignment="Center" />
+                  <TextBlock Text="印刷・配布に" FontSize="11" HorizontalAlignment="Center" />
+                </StackPanel>
+              </Button>
+              <Button x:Name="SaveHtmlButton" Classes="save" Click="OnSaveHtmlClick" ToolTip.Tip="ブラウザーで開ける、1 つの HTML ファイルにします">
+                <StackPanel>
+                  <TextBlock Text="HTML" FontWeight="Bold" FontSize="16" HorizontalAlignment="Center" />
+                  <TextBlock Text="ブラウザーで見る" FontSize="11" HorizontalAlignment="Center" />
+                </StackPanel>
+              </Button>
+              <Button x:Name="SavePngButton" Classes="save" Click="OnSavePngClick" ToolTip.Tip="手順ごとに 1 枚ずつ、画像ファイルにします">
+                <StackPanel>
+                  <TextBlock Text="PNG 画像" FontWeight="Bold" FontSize="16" HorizontalAlignment="Center" />
+                  <TextBlock Text="手順ごとに 1 枚" FontSize="11" HorizontalAlignment="Center" />
+                </StackPanel>
+              </Button>
+            </StackPanel>
+          </Grid>
+          <Border x:Name="StatusBox" IsVisible="False" CornerRadius="8" Padding="12,8" Background="#E8F5EC">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+              <TextBlock x:Name="StatusText" TextWrapping="Wrap" VerticalAlignment="Center" />
+              <Button x:Name="OpenSavedButton" Grid.Column="1" Classes="plain small" Content="開く" Click="OnOpenSavedClick" />
+            </Grid>
+          </Border>
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <!-- 保存中などの待ち表示 -->
+    <Border x:Name="BusyView" IsVisible="False" Background="#99FFFFFF">
+      <Border Background="{StaticResource Card}" BorderBrush="{StaticResource Line}" BorderThickness="1" CornerRadius="12"
+              Padding="28,22" HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="320">
+        <StackPanel Spacing="12">
+          <TextBlock x:Name="BusyText" Text="保存しています…" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center" />
+          <ProgressBar x:Name="BusyBar" Minimum="0" Maximum="1" Height="6" />
+        </StackPanel>
+      </Border>
+    </Border>
+  </Panel>
+</Window>
