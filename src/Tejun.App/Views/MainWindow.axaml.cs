@@ -179,7 +179,7 @@ public partial class MainWindow : Window
     void OnMoveUpClick(object? sender, RoutedEventArgs e) => Move(StepOf(sender), -1);
     void OnMoveDownClick(object? sender, RoutedEventArgs e) => Move(StepOf(sender), +1);
 
-    void Move(StepViewModel? step, int delta)
+    internal void Move(StepViewModel? step, int delta)
     {
         if (step == null) return;
         var from = _steps.IndexOf(step);
@@ -189,9 +189,11 @@ public partial class MainWindow : Window
         _unsaved = true;
     }
 
-    void OnDeleteClick(object? sender, RoutedEventArgs e)
+    void OnDeleteClick(object? sender, RoutedEventArgs e) => Delete(StepOf(sender));
+
+    internal void Delete(StepViewModel? step)
     {
-        if (StepOf(sender) is { } step && _steps.Remove(step)) _unsaved = true;
+        if (step != null && _steps.Remove(step)) _unsaved = true;
     }
 
     async void OnNewClick(object? sender, RoutedEventArgs e)

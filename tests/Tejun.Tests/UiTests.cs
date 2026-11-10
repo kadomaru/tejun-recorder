@@ -104,6 +104,21 @@ public class UiTests
             Settle();
             Shot(window, "ui-4-saved.png");
             Artifacts.Keep(pdf, "ui.pdf");
+
+            // 並べ替えと削除で、番号が振り直される
+            var second = window.Steps[1];
+            window.Move(second, -1);
+            Assert.Same(second, window.Steps[0]);
+            Assert.Equal(1, second.Number);
+            Assert.Equal(2, window.Steps[1].Number);
+            window.Delete(second);
+            Assert.Equal(4, window.Steps.Count);
+            Assert.Equal(new[] { 1, 2, 3, 4 }, window.Steps.Select(s => s.Number));
+            Assert.Equal(4, window.BuildRecording().Steps.Count);
+            // 保存していない変更があっても、テストでは確認の窓を出さずに閉じられるよう全部消す
+            foreach (var step in window.Steps.ToList()) window.Delete(step);
+            Settle();
+            Shot(window, "ui-5-empty.png");
             window.Close();
         }, CancellationToken.None);
     }

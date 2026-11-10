@@ -34,7 +34,14 @@ internal static class SelfTest
             await window.StartRecordingAsync();
             await Task.Delay(1000);
             Check(window.IsRecording, "記録がはじまる");
+            // 操作バーは撮影に写らない設定なので、見た目を確かめる 1 枚のときだけ一時的に写るようにする
+            var barHandle = window.Bar?.TryGetPlatformHandle()?.Handle ?? IntPtr.Zero;
+            Check(barHandle != IntPtr.Zero, "操作バーが出る");
+            Native.SetWindowDisplayAffinity(barHandle, 0);
+            await Task.Delay(300);
             SaveScreen(Path.Combine(folder, "screen-2-recording.png"));
+            WindowsRecorder.ExcludeFromCapture(barHandle);
+            await Task.Delay(300);
 
             int X(double f) => screen.Left + (int)(screen.Width * f);
             int Y(double f) => screen.Top + (int)(screen.Height * f);
