@@ -120,6 +120,8 @@ public class ExportTests
         var pages = System.Text.RegularExpressions.Regex.Matches(text, @"/Type\s*/Page\b").Count;
         Assert.InRange(pages, 2, 5);
         Assert.Contains("/Font", text);
+        // 書体を丸ごと埋め込むと 10MB を超える。使う文字だけなら小さく収まる
+        Assert.True(bytes.Length < 3_000_000, $"PDF が大きすぎます: {bytes.Length:N0} バイト");
         Artifacts.Keep(path, "sample.pdf");
     }
 
@@ -128,6 +130,43 @@ public class ExportTests
     {
         Assert.Equal("a_b_c", FileNames.Safe("a/b:c"));
         Assert.Equal("手順", FileNames.Safe("  "));
+    }
+}
+
+public class FontSubsetTests
+{
+    [Fact]
+    public void SubsetKeepsGlyphsAndWidthsButIsSmall()
+    {
+        // この環境にある TrueType 形式の書体で確かめる（無ければ確かめようがないので何もしない）
+        var manager = SKFontManager.Default;
+        var face = manager.FontFamilies
+            .Select(f => manager.MatchFamily(f))
+            .FirstOrDefault(f => f != null && f.ContainsGlyph('A') && f.GetTableTags().Contains(0x676C7966u /* glyf */));
+        if (face == null) return;
+
+        var text = "ABC abc 123";
+        var cps = text.Select(c => (int)c).ToArray();
+        var subset = FontSubsetter.Subset(face, cps);
+        Assert.NotNull(subset);
+        using var original = face.OpenStream(out _);
+        using var reduced = subset!.OpenStream(out _);
+        Assert.True(reduced.Length < original.Length, $"{reduced.Length} / {original.Length}");
+        using var a = new SKFont(face, 20);
+        using var b = new SKFont(subset, 20);
+        Assert.Equal(a.MeasureText(text), b.MeasureText(text), 2);
+        Assert.Equal(face.GetGlyph('A'), subset.GetGlyph('A'));
+        Assert.False(subset.ContainsGlyph('Z'));
+
+        // 絞り込んだ書体で実際に字が描ける
+        using var bitmap = new SKBitmap(200, 40);
+        using var canvas = new SKCanvas(bitmap);
+        canvas.Clear(SKColors.White);
+        using var paint = new SKPaint { Color = SKColors.Black, IsAntialias = true };
+        canvas.DrawText(text, 4, 28, SKTextAlign.Left, b, paint);
+        var dark = 0;
+        for (var y = 0; y < 40; y++) for (var x = 0; x < 200; x++) if (bitmap.GetPixel(x, y).Red < 128) dark++;
+        Assert.True(dark > 100, dark.ToString());
     }
 }
 

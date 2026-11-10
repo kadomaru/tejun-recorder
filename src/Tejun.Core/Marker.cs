@@ -12,7 +12,7 @@ public static class Marker
         (float)Math.Max(16 * step.Scale, Math.Max(step.ImageWidth, step.ImageHeight) / 72.0);
 
     /// <summary>画像と同じ座標系の canvas に印を描く。</summary>
-    public static void Draw(SKCanvas canvas, Step step)
+    public static void Draw(SKCanvas canvas, Step step, FontSubsets? subsets = null)
     {
         if (!step.HasMarker) return;
         var r = Radius(step);
@@ -38,7 +38,7 @@ public static class Marker
         if (step.Kind is ClickKind.Left) return;
 
         // 左クリック以外は、操作の種類を札で添える
-        using var text = new TextPainter(r * 0.8f, bold: true);
+        using var text = new TextPainter(r * 0.8f, bold: true, subsets);
         var label = Describer.Verb(step.Kind);
         var padX = r * 0.45f;
         var w = text.Measure(label) + padX * 2;

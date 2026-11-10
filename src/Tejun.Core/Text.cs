@@ -32,11 +32,15 @@ public sealed class TextPainter : IDisposable
     }
 
     readonly SKFont _font;
+    readonly FontSubsets? _subsets;
     readonly Dictionary<int, SKFont?> _fallbacks = new();
 
-    public TextPainter(float size, bool bold = false)
+    /// <param name="subsets">指定すると、使う文字だけに絞った書体で描く（PDF に埋め込む書体を小さくするため）。</param>
+    public TextPainter(float size, bool bold = false, FontSubsets? subsets = null)
     {
-        _font = new SKFont(bold ? BoldFace.Value : RegularFace.Value, size)
+        _subsets = subsets;
+        var face = bold ? BoldFace.Value : RegularFace.Value;
+        _font = new SKFont(subsets?.For(face) ?? face, size)
         {
             Subpixel = true,
             Edging = SKFontEdging.Antialias,
@@ -74,6 +78,7 @@ public sealed class TextPainter : IDisposable
         if (!_fallbacks.TryGetValue(codepoint, out var fallback))
         {
             var face = SKFontManager.Default.MatchCharacter(codepoint);
+            if (face != null && _subsets != null) face = _subsets.For(face);
             fallback = face == null ? null : new SKFont(face, _font.Size) { Subpixel = true, Edging = SKFontEdging.Antialias };
             _fallbacks[codepoint] = fallback;
         }

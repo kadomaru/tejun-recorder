@@ -127,10 +127,16 @@ public static class PdfExporter
     public static void Export(Recording recording, string path, IProgress<double>? progress = null)
     {
         var title = string.IsNullOrWhiteSpace(recording.Title) ? "手順書" : recording.Title.Trim();
-        using var titleText = new TextPainter(20, bold: true);
-        using var metaText = new TextPainter(9);
-        using var bodyText = new TextPainter(11);
-        using var numberText = new TextPainter(10.5f, bold: true);
+        var meta = $"{recording.CreatedAt:yyyy年M月d日} ・ 全 {recording.Steps.Count} 手順";
+
+        // 文書で使う文字だけを書体から取り出して埋め込む（日本語の書体を丸ごと埋め込むと 10MB を超えるため）
+        var subsets = new FontSubsets(recording.Steps.Select(s => s.Description)
+            .Concat(Enum.GetValues<ClickKind>().Select(Describer.Verb))
+            .Concat(new[] { title, meta, "0123456789 /…" }));
+        using var titleText = new TextPainter(20, bold: true, subsets);
+        using var metaText = new TextPainter(9, false, subsets);
+        using var bodyText = new TextPainter(11, false, subsets);
+        using var numberText = new TextPainter(10.5f, bold: true, subsets);
 
         var titleLines = titleText.Wrap(title, ContentW);
         var headerHeight = titleLines.Count * titleText.LineHeight + metaText.LineHeight + 14;
@@ -179,7 +185,7 @@ public static class PdfExporter
                 {
                     titleText.DrawLines(canvas, titleLines, Margin, y, new SKColor(0x1D, 0x1D, 0x1F));
                     y += titleLines.Count * titleText.LineHeight;
-                    metaText.DrawLine(canvas, $"{recording.CreatedAt:yyyy年M月d日} ・ 全 {recording.Steps.Count} 手順", Margin, y, new SKColor(0x6E, 0x6E, 0x73));
+                    metaText.DrawLine(canvas, meta, Margin, y, new SKColor(0x6E, 0x6E, 0x73));
                     y += metaText.LineHeight + 6;
                     using var rule = new SKPaint { Color = new SKColor(0xD2, 0xD2, 0xD7), StrokeWidth = 0.75f };
                     canvas.DrawLine(Margin, y, PageW - Margin, y, rule);
@@ -188,7 +194,7 @@ public static class PdfExporter
 
                 foreach (var block in pages[p])
                 {
-                    DrawBlock(canvas, block, y, bodyText, numberText);
+                    DrawBlock(canvas, block, y, bodyText, numberText, subsets);
                     y += block.Height + BlockGap;
                     progress?.Report(++done / (double)recording.Steps.Count);
                 }
@@ -201,7 +207,7 @@ public static class PdfExporter
         }
     }
 
-    static void DrawBlock(SKCanvas canvas, Block block, float y, TextPainter bodyText, TextPainter numberText)
+    static void DrawBlock(SKCanvas canvas, Block block, float y, TextPainter bodyText, TextPainter numberText, FontSubsets subsets)
     {
         using var accent = new SKPaint { Color = Marker.Accent, IsAntialias = true };
         canvas.DrawCircle(Margin + Badge / 2, y + Badge / 2, Badge / 2, accent);
@@ -221,7 +227,7 @@ public static class PdfExporter
         canvas.Scale(k);
         canvas.ClipRect(new SKRect(0, 0, block.Step.ImageWidth, block.Step.ImageHeight));
         canvas.DrawImage(image, 0, 0, new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.None));
-        Marker.Draw(canvas, block.Step);
+        Marker.Draw(canvas, block.Step, subsets);
         canvas.Restore();
 
         using var border = new SKPaint { Color = new SKColor(0xD2, 0xD2, 0xD7), Style = SKPaintStyle.Stroke, StrokeWidth = 0.5f, IsAntialias = true };

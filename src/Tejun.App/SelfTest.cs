@@ -99,6 +99,8 @@ internal static class SelfTest
             var pdf = Path.Combine(folder, "out.pdf");
             var html = Path.Combine(folder, "out.html");
             Check(await window.RunExportAsync("PDF", pdf, p => PdfExporter.Export(recording, pdf, p)) && new FileInfo(pdf).Length > 1000, "PDF で保存できる");
+            var pdfSize = new FileInfo(pdf).Length;
+            Check(pdfSize < 3_000_000, $"PDF が大きくなりすぎない（{pdfSize:N0} バイト）");
             Check(await window.RunExportAsync("HTML", html, p => HtmlExporter.Export(recording, html, p)) && new FileInfo(html).Length > 1000, "HTML で保存できる");
             var png = Path.Combine(folder, "png");
             Check(await window.RunExportAsync("PNG", png, p => PngExporter.Export(recording, png, true, p)) && Directory.GetFiles(png, "*.png").Length == steps.Count, "PNG で保存できる");

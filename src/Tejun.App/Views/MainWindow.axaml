@@ -4,7 +4,7 @@
         x:Class="Tejun.App.Views.MainWindow"
         Title="手順レコーダー"
         Icon="/Assets/app.ico"
-        Width="980" Height="720" MinWidth="700" MinHeight="520"
+        Width="960" Height="660" MinWidth="700" MinHeight="480"
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource Page}">
   <Panel>

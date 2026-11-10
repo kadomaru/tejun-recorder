@@ -23,6 +23,7 @@ public partial class MainWindow : Window
     bool _recording;
     bool _unsaved;
     bool _closeConfirmed;
+    bool _selfTestStarted;
     string? _savedPath;
 
     public MainWindow() : this(null, null) { }
@@ -58,8 +59,12 @@ public partial class MainWindow : Window
         // 「--selftest 出力先」で起動したときは、実際にクリックを起こして記録から保存までを確かめる
         var args = Program.Args;
         var index = Array.IndexOf(args, "--selftest");
-        if (index >= 0 && index + 1 < args.Length && OperatingSystem.IsWindows())
+        // Opened は窓を出し直すたびに来るので、最初の 1 回だけ動かす
+        if (index >= 0 && index + 1 < args.Length && OperatingSystem.IsWindows() && !_selfTestStarted)
+        {
+            _selfTestStarted = true;
             _ = SelfTest.RunAsync(this, args[index + 1]);
+        }
     }
 
     public IReadOnlyList<StepViewModel> Steps => _steps;
