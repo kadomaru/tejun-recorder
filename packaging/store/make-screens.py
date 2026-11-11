@@ -94,7 +94,7 @@ def dialog():
 SCREENS = {
     "screen-1.png": desktop() + window(ROWS),                 # 「新規申請」をクリック (365, 188)
     "screen-2.png": desktop() + window(ROWS) + dialog(),      # 「申請する」をクリック (1214, 752)
-    "screen-3.png": desktop() + window([NEW_ROW] + ROWS),     # 新しい行をダブルクリック (820, 306)
+    "screen-3.png": desktop() + window([NEW_ROW] + ROWS),     # 新しい行をダブルクリック (960, 306)
 }
 
 OUT.mkdir(exist_ok=True)

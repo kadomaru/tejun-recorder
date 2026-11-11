@@ -189,7 +189,7 @@ public class UiTests
         {
             ("screen-1.png", 365, 188, ClickKind.Left, "新規申請", "ボタン"),
             ("screen-2.png", 1214, 752, ClickKind.Left, "申請する", "ボタン"),
-            ("screen-3.png", 820, 306, ClickKind.DoubleLeft, "展示会の見学（電車）", "項目"),
+            ("screen-3.png", 960, 306, ClickKind.DoubleLeft, "展示会の見学（電車）", "項目"),
         };
 
         public void Start(RecorderOptions options) => _options = options;
