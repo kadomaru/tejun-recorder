@@ -49,6 +49,8 @@ dotnet publish $project -c Release -r win-x64 -o $layout `
     -p:PublishSingleFile=false -p:IncludeNativeLibrariesForSelfExtract=false `
     -p:EnableCompressionInSingleFile=false -p:DebugType=none
 if ($LASTEXITCODE -ne 0) { throw 'dotnet publish に失敗しました' }
+# 画像ライブラリに付いてくるデバッグ用のファイルは配布に要らない（100 MB ほどある）
+Get-ChildItem $layout -Filter *.pdb -Recurse | Remove-Item -Force
 
 Copy-Item (Join-Path $here 'Assets') (Join-Path $layout 'Assets') -Recurse
 
