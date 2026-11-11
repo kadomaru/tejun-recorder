@@ -120,6 +120,98 @@ public class UiTests
             Settle();
             Shot(window, "ui-5-empty.png");
             window.Close();
+
+            StoreShots();
         }, CancellationToken.None);
+    }
+
+    /// <summary>
+    /// Microsoft Store に載せるスクリーンショットを撮る（出力先 TEJUN_ARTIFACTS があるときだけ）。
+    /// 記録済みの画面として、見本の業務画面（packaging/store/screens）を読み込ませる。
+    /// </summary>
+    static void StoreShots()
+    {
+        if (string.IsNullOrEmpty(Artifacts.Dir)) return;
+        var screens = FindUp(Path.Combine("packaging", "store", "screens"));
+        if (screens == null) return;
+
+        var recorder = new ScreenFileRecorder(screens);
+        // Store が求める大きさ（1366 x 768 以上）に合わせる
+        var window = new MainWindow(recorder, new Settings()) { Width = 1366, Height = 768 };
+        window.Show();
+        Settle();
+        Shot(window, "store-1-home.png");
+
+        Wait(window.StartRecordingAsync());
+        recorder.EmitAll();
+        Settle();
+        Wait(window.StopRecordingAsync());
+        Assert.Equal(3, window.Steps.Count);
+        window.FindControl<TextBox>("TitleBox")!.Text = "経費を申請する手順";
+        for (var i = 0; i < 50 && window.Steps.Take(2).Any(s => s.Preview == null); i++) Settle(100);
+        Settle(200);
+        Shot(window, "store-2-editor.png");
+
+        var recording = window.BuildRecording();
+        var folder = Path.Combine(Samples.TempDir("store"), "png");
+        var export = window.RunExportAsync("PNG 画像を保存しています…", folder, p => PngExporter.Export(recording, folder, true, p));
+        Wait(export);
+        Assert.True(export.Result);
+        var files = Directory.GetFiles(folder, "*.png").OrderBy(f => f, StringComparer.Ordinal).ToArray();
+        Assert.Equal(3, files.Length);
+        for (var i = 0; i < files.Length; i++) Artifacts.Keep(files[i], $"store-{3 + i}-exported.png");
+
+        foreach (var step in window.Steps.ToList()) window.Delete(step);
+        window.Close();
+    }
+
+    static string? FindUp(string relative)
+    {
+        for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir != null; dir = dir.Parent)
+        {
+            var path = Path.Combine(dir.FullName, relative);
+            if (Directory.Exists(path)) return path;
+        }
+        return null;
+    }
+
+    /// <summary>用意した画像を、記録した画面として順に渡す記録係。</summary>
+    sealed class ScreenFileRecorder(string screens) : IRecorder
+    {
+        public event Action<Step>? StepCaptured;
+        public event Action<Step>? StepUpdated { add { } remove { } }
+        public bool IsPaused { get; set; }
+
+        RecorderOptions? _options;
+
+        // クリック位置は packaging/store/make-screens.py の絵に合わせてある
+        static readonly (string File, int X, int Y, ClickKind Kind, string Element, string Type)[] Script =
+        {
+            ("screen-1.png", 365, 188, ClickKind.Left, "新規申請", "ボタン"),
+            ("screen-2.png", 1214, 752, ClickKind.Left, "申請する", "ボタン"),
+            ("screen-3.png", 820, 306, ClickKind.DoubleLeft, "展示会の見学（電車）", "項目"),
+        };
+
+        public void Start(RecorderOptions options) => _options = options;
+
+        public void CaptureNow() { }
+
+        public void EmitAll()
+        {
+            foreach (var s in Script)
+            {
+                var path = Path.Combine(_options!.SessionFolder, s.File);
+                File.Copy(Path.Combine(screens, s.File), path, true);
+                StepCaptured?.Invoke(new Step
+                {
+                    ImagePath = path, ImageWidth = 1920, ImageHeight = 1080, ClickX = s.X, ClickY = s.Y, Kind = s.Kind,
+                    WindowTitle = "経費精算（サンプル）", ElementName = s.Element, ElementType = s.Type,
+                    Description = Describer.Describe(s.Kind, s.Element, s.Type, "経費精算（サンプル）"),
+                });
+            }
+        }
+
+        public Task StopAsync() => Task.CompletedTask;
+        public void Dispose() { }
     }
 }
