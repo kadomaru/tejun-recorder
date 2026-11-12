@@ -4,7 +4,7 @@
         x:Class="Tejun.App.Views.MainWindow"
         Title="手順レコーダー"
         Icon="/Assets/app.ico"
-        Width="960" Height="660" MinWidth="700" MinHeight="480"
+        Width="960" Height="660" MinWidth="760" MinHeight="480"
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource Page}">
   <Panel>
@@ -145,7 +145,11 @@
       <Border Grid.Row="2" Background="{StaticResource Card}" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0" Padding="20,12">
         <StackPanel Spacing="8">
           <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
-            <TextBlock x:Name="CountText" Text="全 0 手順" FontWeight="Bold" VerticalAlignment="Center" />
+            <StackPanel VerticalAlignment="Center" Spacing="2">
+              <TextBlock x:Name="CountText" Text="全 0 手順" FontWeight="Bold" />
+              <CheckBox x:Name="CaptionCheck" Content="説明文を入れて保存" MinHeight="0" Padding="8,2,0,2"
+                        ToolTip.Tip="外すと、説明文を入れずに保存します（PNG 画像は、上の説明の帯がない画面だけの画像になります）" />
+            </StackPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
               <TextBlock Text="保存する：" VerticalAlignment="Center" Foreground="{StaticResource SubInk}" />
               <Button x:Name="SavePdfButton" Classes="save" Click="OnSavePdfClick" ToolTip.Tip="印刷や配布に向いた、1 つの PDF ファイルにします">

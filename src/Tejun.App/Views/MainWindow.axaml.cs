@@ -42,6 +42,13 @@ public partial class MainWindow : Window
         ScopeWindow.IsChecked = _settings.Scope == CaptureScope.ClickedWindow;
         ScopeAll.IsChecked = _settings.Scope == CaptureScope.AllScreens;
 
+        CaptionCheck.IsChecked = _settings.IncludeDescription;
+        CaptionCheck.IsCheckedChanged += (_, _) =>
+        {
+            _settings.IncludeDescription = IncludeDescription;
+            _settings.Save();
+        };
+
         if (_recorder is DemoRecorder)
             HomeNote.Text = "この環境は Windows ではないため、見本の手順で動作を確かめるモードで動いています。";
 
@@ -69,6 +76,9 @@ public partial class MainWindow : Window
 
     public IReadOnlyList<StepViewModel> Steps => _steps;
     public bool IsRecording => _recording;
+
+    /// <summary>保存するとき、各手順に説明文を入れるか（保存ボタンの横のチェック）。</summary>
+    public bool IncludeDescription => CaptionCheck.IsChecked == true;
 
     CaptureScope SelectedScope =>
         ScopeWindow.IsChecked == true ? CaptureScope.ClickedWindow
@@ -244,12 +254,12 @@ public partial class MainWindow : Window
     }
 
     async void OnSavePdfClick(object? sender, RoutedEventArgs e) =>
-        await SaveFileAsync("PDF", "pdf", "application/pdf", (r, path, p) => PdfExporter.Export(r, path, p));
+        await SaveFileAsync("PDF", "pdf", "application/pdf", (r, path, caption, p) => PdfExporter.Export(r, path, caption, p));
 
     async void OnSaveHtmlClick(object? sender, RoutedEventArgs e) =>
-        await SaveFileAsync("HTML", "html", "text/html", (r, path, p) => HtmlExporter.Export(r, path, p));
+        await SaveFileAsync("HTML", "html", "text/html", (r, path, caption, p) => HtmlExporter.Export(r, path, caption, p));
 
-    async Task SaveFileAsync(string label, string extension, string mime, Action<Recording, string, IProgress<double>> export)
+    async Task SaveFileAsync(string label, string extension, string mime, Action<Recording, string, bool, IProgress<double>> export)
     {
         var recording = BuildRecording();
         var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
@@ -266,7 +276,9 @@ public partial class MainWindow : Window
         });
         var path = file?.TryGetLocalPath();
         if (path == null) return;
-        await RunExportAsync($"{label} を保存しています…", path, p => export(recording, path, p));
+        // 書き出しは別のスレッドで動くので、チェックの状態は先に読んでおく
+        var caption = IncludeDescription;
+        await RunExportAsync($"{label} を保存しています…", path, p => export(recording, path, caption, p));
     }
 
     async void OnSavePngClick(object? sender, RoutedEventArgs e)
@@ -281,12 +293,13 @@ public partial class MainWindow : Window
         var parent = folders.FirstOrDefault()?.TryGetLocalPath();
         if (parent == null) return;
 
+        var caption = IncludeDescription;
         // 選んだ場所の中に、タイトルの名前でフォルダーを作ってまとめる
         var name = FileNames.Safe(recording.Title, "手順書");
         var folder = Path.Combine(parent, name);
         for (var i = 2; Directory.Exists(folder) && Directory.EnumerateFileSystemEntries(folder).Any(); i++)
             folder = Path.Combine(parent, $"{name} ({i})");
-        await RunExportAsync("PNG 画像を保存しています…", folder, p => PngExporter.Export(recording, folder, true, p));
+        await RunExportAsync("PNG 画像を保存しています…", folder, p => PngExporter.Export(recording, folder, caption, p));
     }
 
     public async Task<bool> RunExportAsync(string message, string path, Action<IProgress<double>> export)

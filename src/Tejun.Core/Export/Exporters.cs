@@ -19,7 +19,10 @@ public static class FileNames
 
 public static class PngExporter
 {
-    /// <summary>手順ごとに 1 枚の PNG をフォルダーへ書き出す。戻り値は書いたファイルの一覧。</summary>
+    /// <summary>
+    /// 手順ごとに 1 枚の PNG をフォルダーへ書き出す。戻り値は書いたファイルの一覧。
+    /// <paramref name="caption"/> を外すと、番号と説明の帯を付けず、印を描いた画面だけにする。
+    /// </summary>
     public static List<string> Export(Recording recording, string folder, bool caption = true, IProgress<double>? progress = null)
     {
         Directory.CreateDirectory(folder);
@@ -38,8 +41,11 @@ public static class PngExporter
 
 public static class HtmlExporter
 {
-    /// <summary>画像を埋め込んだ、1 ファイルで完結する HTML を書き出す。</summary>
-    public static void Export(Recording recording, string path, IProgress<double>? progress = null)
+    /// <summary>
+    /// 画像を埋め込んだ、1 ファイルで完結する HTML を書き出す。
+    /// <paramref name="caption"/> を外すと、各手順は番号と画像だけになる。
+    /// </summary>
+    public static void Export(Recording recording, string path, bool caption = true, IProgress<double>? progress = null)
     {
         var title = string.IsNullOrWhiteSpace(recording.Title) ? "手順書" : recording.Title.Trim();
         var sb = new StringBuilder();
@@ -52,8 +58,8 @@ public static class HtmlExporter
         {
             var step = recording.Steps[i];
             var png = StepImage.RenderPng(step);
-            var description = E(step.Description).Replace("\n", "<br>");
-            sb.Append($"<li class=\"step\" id=\"step-{i + 1}\">\n<div class=\"head\"><span class=\"num\">{i + 1}</span><p>{description}</p></div>\n");
+            var description = caption ? $"<p>{E(step.Description).Replace("\n", "<br>")}</p>" : "";
+            sb.Append($"<li class=\"step\" id=\"step-{i + 1}\">\n<div class=\"head\"><span class=\"num\">{i + 1}</span>{description}</div>\n");
             sb.Append($"<a class=\"shot\" href=\"#zoom-{i + 1}\"><img loading=\"lazy\" width=\"{step.ImageWidth}\" height=\"{step.ImageHeight}\" alt=\"手順 {i + 1} の画面\" src=\"data:image/png;base64,");
             sb.Append(Convert.ToBase64String(png));
             sb.Append($"\"></a>\n<a class=\"zoom\" id=\"zoom-{i + 1}\" href=\"#step-{i + 1}\" aria-label=\"拡大表示を閉じる\"></a>\n</li>\n");
@@ -123,14 +129,17 @@ public static class PdfExporter
 
     sealed record Block(Step Step, int Number, List<string> Lines, float TextHeight, float ImageW, float ImageH, float Height);
 
-    /// <summary>A4 縦の PDF を書き出す。文字は選択・検索でき、画像は劣化させずに埋め込む。</summary>
-    public static void Export(Recording recording, string path, IProgress<double>? progress = null)
+    /// <summary>
+    /// A4 縦の PDF を書き出す。文字は選択・検索でき、画像は劣化させずに埋め込む。
+    /// <paramref name="caption"/> を外すと、各手順は番号と画像だけになる。
+    /// </summary>
+    public static void Export(Recording recording, string path, bool caption = true, IProgress<double>? progress = null)
     {
         var title = string.IsNullOrWhiteSpace(recording.Title) ? "手順書" : recording.Title.Trim();
         var meta = $"{recording.CreatedAt:yyyy年M月d日} ・ 全 {recording.Steps.Count} 手順";
 
         // 文書で使う文字だけを書体から取り出して埋め込む（日本語の書体を丸ごと埋め込むと 10MB を超えるため）
-        var subsets = new FontSubsets(recording.Steps.Select(s => s.Description)
+        var subsets = new FontSubsets(recording.Steps.Select(s => caption ? s.Description : "")
             .Concat(Enum.GetValues<ClickKind>().Select(Describer.Verb))
             .Concat(new[] { title, meta, "0123456789 /…" }));
         using var titleText = new TextPainter(20, bold: true, subsets);
@@ -147,7 +156,7 @@ public static class PdfExporter
         for (var i = 0; i < recording.Steps.Count; i++)
         {
             var step = recording.Steps[i];
-            var lines = bodyText.Wrap(step.Description, ContentW - Badge - Gap);
+            var lines = caption ? bodyText.Wrap(step.Description, ContentW - Badge - Gap) : new List<string>();
             var textHeight = Math.Max(Badge, lines.Count * bodyText.LineHeight);
             var maxImageH = Bottom - Top - textHeight - Gap;
             var scale = Math.Min(ContentW / step.ImageWidth, maxImageH / step.ImageHeight);

@@ -8,6 +8,8 @@ public sealed class Settings
 {
     public CaptureScope Scope { get; set; } = CaptureScope.ClickedScreen;
     public string? LastFolder { get; set; }
+    /// <summary>保存するとき、各手順に説明文を入れるか。</summary>
+    public bool IncludeDescription { get; set; } = true;
 
     static string FilePath => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TejunRecorder", "settings.json");

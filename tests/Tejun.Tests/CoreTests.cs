@@ -93,6 +93,39 @@ public class ExportTests
     }
 
     [Fact]
+    public void ExportWithoutDescriptions()
+    {
+        var dir = Samples.TempDir("nocaption");
+        var recording = Samples.Recording(dir);
+
+        // PNG は帯が付かず、元の画面と同じ大きさになる
+        var files = PngExporter.Export(recording, Path.Combine(dir, "out"), caption: false);
+        Assert.Equal(5, files.Count);
+        using var first = SKBitmap.Decode(files[0]);
+        Assert.Equal(1920, first.Width);
+        Assert.Equal(1080, first.Height);
+        Artifacts.Keep(files[2], "png-step3-nocaption.png");
+
+        // HTML は番号と画像だけ
+        var html = Path.Combine(dir, "out.html");
+        HtmlExporter.Export(recording, html, caption: false);
+        var text = File.ReadAllText(html, Encoding.UTF8);
+        Assert.Equal(5, text.Split("data:image/png;base64,").Length - 1);
+        Assert.Contains("<span class=\"num\">1</span></div>", text);
+        Assert.DoesNotContain("&lt;OK&gt;", text);
+        Artifacts.Keep(html, "sample-nocaption.html");
+
+        // PDF は説明の分だけ小さくなる
+        var with = Path.Combine(dir, "with.pdf");
+        var without = Path.Combine(dir, "without.pdf");
+        PdfExporter.Export(recording, with);
+        PdfExporter.Export(recording, without, caption: false);
+        Assert.Equal("%PDF-", Encoding.ASCII.GetString(File.ReadAllBytes(without), 0, 5));
+        Assert.True(new FileInfo(without).Length < new FileInfo(with).Length);
+        Artifacts.Keep(without, "sample-nocaption.pdf");
+    }
+
+    [Fact]
     public void HtmlExportIsSelfContainedAndEscaped()
     {
         var dir = Samples.TempDir("html");

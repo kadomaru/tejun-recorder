@@ -66,7 +66,8 @@ public class UiTests
         {
             var dir = Samples.TempDir("ui");
             var demo = new DemoRecorder();
-            var window = new MainWindow(demo, new Settings());
+            var settings = new Settings();
+            var window = new MainWindow(demo, settings);
             window.Show();
             Settle();
             Shot(window, "ui-1-home.png");
@@ -97,12 +98,20 @@ public class UiTests
             var recording = window.BuildRecording();
             Assert.Equal("報告書を開く手順", recording.Title);
             var pdf = Path.Combine(dir, "out.pdf");
-            var export = window.RunExportAsync("PDF を保存しています…", pdf, p => PdfExporter.Export(recording, pdf, p));
+            var export = window.RunExportAsync("PDF を保存しています…", pdf, p => PdfExporter.Export(recording, pdf, true, p));
             Wait(export);
             Assert.True(export.Result);
             Assert.True(new FileInfo(pdf).Length > 10_000);
             Settle();
             Shot(window, "ui-4-saved.png");
+
+            // 「説明文を入れる」を外すと、次に開いたときにも引き継ぐ設定に残る
+            var check = window.FindControl<CheckBox>("CaptionCheck")!;
+            Assert.True(check.IsChecked);
+            check.IsChecked = false;
+            Assert.False(window.IncludeDescription);
+            Assert.False(settings.IncludeDescription);
+            check.IsChecked = true;
             Artifacts.Keep(pdf, "ui.pdf");
 
             // 並べ替えと削除で、番号が振り直される
